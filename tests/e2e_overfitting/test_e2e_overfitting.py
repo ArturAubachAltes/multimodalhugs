@@ -8,6 +8,9 @@ import random
 import numpy as np
 import torch
 
+from pathlib import Path
+
+
 def set_global_seed(seed: int = 42) -> None:
     """
     Set random seed for Python, NumPy, and PyTorch (CPU and CUDA) to ensure reproducibility.
@@ -35,12 +38,19 @@ def prepare_paths():
     os.makedirs(GENERATE_PATH, exist_ok=True)
 
 def run_python_script(script_path, args):
+    project_root = Path(__file__).resolve().parents[2]
+
     result = subprocess.run(
         ["python", script_path] + args,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
         text=True,
-        env={**os.environ, "CUDA_VISIBLE_DEVICES": "", "PYTORCH_ENABLE_MPS_FALLBACK": "1"},
+        cwd=str(project_root),
+        env={**os.environ,
+             "CUDA_VISIBLE_DEVICES": "",
+             "PYTORCH_ENABLE_MPS_FALLBACK": "1",
+             "PYTHONPATH": str(project_root),
+        },
     )
     print(f"\n--- Output of {script_path} ---\n{result.stdout}\n")
     assert result.returncode == 0, f"{script_path} failed"
