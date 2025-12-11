@@ -205,7 +205,7 @@ class MultiModalEmbedderConfig(PretrainedConfig):
 
         if self.backbone_config is not None:
             backbone_config_class = get_backbone_config_class(self.backbone_type)
-            self.backbone_config = backbone_config_class(self.backbone_config)
+            self.backbone_config = backbone_config_class(**self.backbone_config)
 
         elif self.pretrained_backbone is not None:
             self.backbone_config = AutoConfig.from_pretrained(self.pretrained_backbone)
@@ -223,7 +223,7 @@ class MultiModalEmbedderConfig(PretrainedConfig):
 
         if self.feature_extractor_type is not None:
             feature_xtractor_config_class = get_feature_extractor_class(self.feature_extractor_type)[1]
-            self.feature_extractor_config = feature_xtractor_config_class(self.feature_extractor_config if
+            self.feature_extractor_config = feature_xtractor_config_class(**self.feature_extractor_config if
                                                                           self.feature_extractor_config is not None else {})
         else:
             self.feature_extractor_config = None
