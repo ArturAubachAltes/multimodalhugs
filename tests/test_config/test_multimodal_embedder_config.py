@@ -20,6 +20,7 @@ def test_config_use_backbone_max_length_true():
 
     assert config.max_length == 512
 
+
 def test_config_use_backbone_max_length_fails_without_backbone_config():
     with pytest.raises(ValueError):
         _ = MultiModalEmbedderConfig(use_backbone_max_length=True)

@@ -13,19 +13,11 @@ from omegaconf import OmegaConf
 from .global_variables import DEVICE, INPUTS, LABELS, SAMPLES
 
 
-# Declare global variables
-model = None
-src_tokenizer = None
-tgt_tokenizer = None
-
-
 @pytest.fixture(scope="module")
 def model_setup(request):
 
     params = request.param
     config_path = params["config_path"]
-
-    global model, src_tokenizer, tgt_tokenizer
 
     # Set seeds for reproducibility
     seed = 42
@@ -51,12 +43,13 @@ def model_setup(request):
     })
 
     model = MultiModalEmbedderModel.build_model(**model_kwargs).to(DEVICE)
+
+    print("model_setup id:", id(model))
+
     return (model, src_tokenizer, tgt_tokenizer), params
 
 
-def test_training(model_setup):
-
-    (model, src_tokenizer, tgt_tokenizer), params = model_setup
+def _train_model(model):
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
@@ -80,8 +73,7 @@ def test_training(model_setup):
         optimizer.step()
         print(f"Epoch {epoch} - Loss: {loss}")
 
-    if not any(l < 0.11 for l in losses[-20:]):
-        raise AssertionError(f"Model failed to overfit: none of the last 20 losses is below 0.11 (last loss: {loss.item()})")
+    return model, losses
 
 
 @pytest.mark.parametrize(
@@ -89,17 +81,17 @@ def test_training(model_setup):
     [
         {
             "id": "default_max_length",
-            "config_path": "tests/test_model_only/test_default_max_length.yaml",
+            "config_path": "tests/test_model_only/configs/test_default_max_length.yaml",
             "expected_max_length": 200,
         },
         {
             "id": "nondefault_max_length",
-            "config_path": "tests/test_model_only/test_nondefault_max_length.yaml",
+            "config_path": "tests/test_model_only/configs/test_nondefault_max_length.yaml",
             "expected_max_length": 15,
         },
         {
             "id": "use_backbone_max_length",
-            "config_path": "tests/test_model_only/test_use_backbone_max_length.yaml",
+            "config_path": "tests/test_model_only/configs/test_use_backbone_max_length.yaml",
             "expected_max_length": 20,
         },
     ],
@@ -110,9 +102,55 @@ def test_model_maxlength_is_correct(model_setup):
     assert model.max_length == params["expected_max_length"], "Model max length is not correct"
 
 
-def test_overfitting_accuracy(model_setup):
+@pytest.mark.parametrize(
+    "model_setup",
+    [
+        {
+            "id": "default_setup",
+            "config_path": "tests/test_model_only/configs/test_model_only.yaml",
+        },
+    ],
+    indirect=True,
+)
+def test_training(model_setup):
 
     (model, src_tokenizer, tgt_tokenizer), params = model_setup
+
+    model, losses = _train_model(model)
+
+    last_loss = losses[-1]
+
+    if not any(l < 0.11 for l in losses[-20:]):
+        raise AssertionError(f"Model failed to overfit: none of the last 20 losses is below 0.11 (last loss: {last_loss.item()})")
+
+
+@pytest.fixture(scope="module")
+def prepare_trained_model(model_setup):
+    (model, src_tokenizer, tgt_tokenizer), params = model_setup
+
+    model, losses = _train_model(model)
+
+    print("prepare_trained_model received model id:", id(model))
+
+    return model, src_tokenizer, tgt_tokenizer
+
+
+@pytest.mark.parametrize(
+    "model_setup",
+    [
+        {
+            "id": "default_setup",
+            "config_path": "tests/test_model_only/configs/test_model_only.yaml",
+        },
+    ],
+    indirect=True,
+)
+def test_overfitting_accuracy(model_setup, prepare_trained_model):
+
+    model, src_tokenizer, tgt_tokenizer = prepare_trained_model
+
+    print("test_overfitting_accuracy received model id:", id(model))
+
     model.eval()
 
     predictions = []
@@ -137,6 +175,9 @@ def test_overfitting_accuracy(model_setup):
             )
             predictions.append(tgt_tokenizer.batch_decode(generated_ids, skip_special_tokens=True)[0])
             targets.append([tgt_tokenizer.decode(g, skip_special_tokens=True) for g in LABELS[i].unsqueeze(0)][0])
+
+            print("Target:", repr(targets[-1]))
+            print("Prediction:", repr(predictions[-1]))
 
     error_rate = wer(targets, predictions)
     assert error_rate == 0, "Model prediction is not accurate"
