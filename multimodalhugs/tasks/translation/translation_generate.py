@@ -203,8 +203,8 @@ def main():
         trust_remote_code=model_args.trust_remote_code,
     )
 
-    if training_args.generation_max_length is not None:
-        config.max_new_tokens = training_args.generation_max_length
+    if generate_args.generation_max_length is not None:
+        config.max_new_tokens = generate_args.generation_max_length
         config.max_length = None
     elif hasattr(config, "max_new_tokens") and config.max_new_tokens is not None:
         config.max_length = None
@@ -288,7 +288,7 @@ def main():
     # --- Execute evaluation ---
     # Predict is invoked to generate predictions and calculate metrics on the test dataset.
     logger.info("*** Evaluation on the test partition ***")
-    max_length = training_args.generation_max_length if training_args.generation_max_length is not None else model.max_length
+    max_length = generate_args.generation_max_length if generate_args.generation_max_length is not None else model.max_length
     num_beams = data_args.num_beams if data_args.num_beams is not None else training_args.generation_num_beams
 
     predict_results = trainer.predict(test_dataset, metric_key_prefix="predict", max_length=max_length, num_beams=num_beams)

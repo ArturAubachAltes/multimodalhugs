@@ -180,4 +180,9 @@ def test_overfitting_accuracy(model_setup, prepare_trained_model):
             print("Prediction:", repr(predictions[-1]))
 
     error_rate = wer(targets, predictions)
+
+    # this assertion needed to be relaxed (from a strict WER of 0.0) because of non-determinism
+    # the strict test succeeds on certain machines and fails on others, with the same libraries installed,
+    # and despite maximum effort to fix the seed and other sources of non-determinism
+
     assert error_rate <= 0.125, "Model prediction is not accurate"

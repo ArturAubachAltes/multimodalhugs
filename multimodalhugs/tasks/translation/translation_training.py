@@ -64,7 +64,7 @@ from transformers.utils import send_example_telemetry
 from multimodalhugs.data import DataCollatorMultimodalSeq2Seq
 from multimodalhugs.utils import print_module_details
 
-from multimodalhugs.tasks.translation.config_classes import ModelArguments, ProcessorArguments, DataTrainingArguments, ExtraArguments, ExtendedSeq2SeqTrainingArguments
+from multimodalhugs.tasks.translation.config_classes import GenerateArguments, ModelArguments, ProcessorArguments, DataTrainingArguments, ExtraArguments, ExtendedSeq2SeqTrainingArguments
 from multimodalhugs.tasks.translation.utils import (
     merge_arguments,
     construct_kwargs,
@@ -82,11 +82,13 @@ def main():
     # or by passing the --help flag to this script.
     # We now keep distinct sets of args, for a cleaner separation of concerns.
 
-    parser = HfArgumentParser((ExtraArguments, ModelArguments, ProcessorArguments, DataTrainingArguments, ExtendedSeq2SeqTrainingArguments))
-    extra_args, model_args, processor_args, data_args, training_args = parser.parse_args_into_dataclasses()
+    parser = HfArgumentParser((GenerateArguments, ExtraArguments, ModelArguments, ProcessorArguments, DataTrainingArguments, ExtendedSeq2SeqTrainingArguments))
+    generate_args, extra_args, model_args, processor_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
     if extra_args.config_path:
         training_args = merge_config_and_command_args(extra_args.config_path, ExtendedSeq2SeqTrainingArguments, "training", training_args, sys.argv[1:])
+        generate_args = merge_config_and_command_args(extra_args.config_path, GenerateArguments, "generation",
+                                                      generate_args, sys.argv[1:])
         model_args = merge_config_and_command_args(extra_args.config_path, ModelArguments, "model", model_args, sys.argv[1:])
         processor_args = merge_config_and_command_args(extra_args.config_path, ProcessorArguments, "processor", processor_args, sys.argv[1:])
         data_args = merge_config_and_command_args(extra_args.config_path, DataTrainingArguments, "data", data_args, sys.argv[1:])
@@ -393,8 +395,8 @@ def main():
     if training_args.do_predict:
         logger.info("*** Evaluation on the test partition ***")
         max_length = (
-            training_args.generation_max_length
-            if training_args.generation_max_length is not None
+            generate_args.generation_max_length
+            if generate_args.generation_max_length is not None
             else model.max_length
         )
         num_beams = data_args.num_beams if data_args.num_beams is not None else training_args.generation_num_beams

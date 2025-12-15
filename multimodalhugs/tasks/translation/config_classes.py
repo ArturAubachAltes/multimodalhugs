@@ -127,6 +127,15 @@ class GenerateArguments:
             )
         }
     )
+    generation_max_length: Optional[int] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Maximum length used by generation. This argument will be passed to ``model.generate``, "
+                "which is used during ``evaluate`` and ``predict``."
+            )
+        },
+    )
 
 @dataclass
 class ExtendedSeq2SeqTrainingArguments(Seq2SeqTrainingArguments):
