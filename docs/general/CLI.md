@@ -133,6 +133,8 @@ multimodalhugs-generate --task <task_name> [additional arguments...]
 - **--dataset_dir** (*Required*):\* Path to the dataset.
 - **--config_path** (*Optional*): Path to the YAML configuration file.
 - **--generate_output_dir** (*Optional*):\* Directory to save generated outputs.
+- **--generation_max_length** (*Optional*):\* Maximum length of generated sequences. Overrides `max_length` set by the
+model configuration.
   
   > **\*** This field can be either specified in the config or as argument
 
