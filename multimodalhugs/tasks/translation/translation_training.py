@@ -395,11 +395,11 @@ def main():
     if training_args.do_predict:
         logger.info("*** Evaluation on the test partition ***")
         max_length = (
-            generate_args.generation_max_length
-            if generate_args.generation_max_length is not None
+            generate_args.max_length
+            if generate_args.max_length is not None
             else model.max_length
         )
-        num_beams = data_args.num_beams if data_args.num_beams is not None else training_args.generation_num_beams
+        num_beams = generate_args.num_beams if generate_args.num_beams is not None else training_args.generation_num_beams
 
         predict_results = trainer.predict(predict_dataset, metric_key_prefix="predict", max_length=max_length, num_beams=num_beams)
         metrics_result = predict_results.metrics

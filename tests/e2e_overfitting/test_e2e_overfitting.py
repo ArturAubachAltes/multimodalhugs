@@ -133,7 +133,7 @@ def test_generation_score_is_perfect():
             "--generate_output_dir", GENERATE_PATH,
             "--do_predict", "true",
             "--use_cpu",
-            "--generation_max_length", "7",
+            "--max_length", "7",
             "--visualize_prediction_prob", "0",
             "--report_to", "none",
         ],

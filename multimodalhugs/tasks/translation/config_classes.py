@@ -83,15 +83,6 @@ class DataTrainingArguments:
             )
         },
     )
-    num_beams: Optional[int] = field(
-        default=1,
-        metadata={
-            "help": (
-                "Number of beams to use for evaluation. This argument will be passed to ``model.generate``, "
-                "which is used during ``evaluate`` and ``predict``."
-            )
-        },
-    )
     ignore_pad_token_for_loss: bool = field(
         default=True,
         metadata={
@@ -127,12 +118,20 @@ class GenerateArguments:
             )
         }
     )
-    generation_max_length: Optional[int] = field(
+    max_length: Optional[int] = field(
         default=None,
         metadata={
             "help": (
                 "Maximum length used by generation. This argument will be passed to ``model.generate``, "
                 "which is used during ``evaluate`` and ``predict``."
+            )
+        },
+    )
+    num_beams: Optional[int] = field(
+        default=1,
+        metadata={
+            "help": (
+                "Number of beams to use for generation."
             )
         },
     )
