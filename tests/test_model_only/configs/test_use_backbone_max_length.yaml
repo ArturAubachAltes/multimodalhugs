@@ -19,8 +19,11 @@ model:
     decoder_attention_heads: 1
     decoder_ffn_dim: 64
     encoder_ffn_dim: 64
+    max_length: 20
+  use_backbone_max_length: true
   pretrained_backbone:
   d_model: 32
+  max_length: 15
   feat_dim: 32
   num_labels: 2
   pad_token_id: 1
